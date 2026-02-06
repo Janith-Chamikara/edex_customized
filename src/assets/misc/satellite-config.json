@@ -1,0 +1,8 @@
+{
+  "connectingDelay": 10000,
+  "spamDialogInterval": 60,
+  "spamDialogCount": 48,
+  "finalDialogDelay": 4500,
+  "buttonResetDelay": 5000,
+  "countdownDays": 5
+}

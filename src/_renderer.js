@@ -513,6 +513,19 @@ async function initUI() {
     const seeMoreBtn = document.getElementById("satellite-see-more");
     if (seeMoreBtn) {
       seeMoreBtn.addEventListener("click", () => {
+        // Load satellite config for customizable delays
+        const satelliteConfig = require(
+          path.join(__dirname, "assets", "misc", "satellite-config.json"),
+        );
+        const {
+          connectingDelay = 10000,
+          spamDialogInterval = 60,
+          spamDialogCount = 48,
+          finalDialogDelay = 4500,
+          buttonResetDelay = 5000,
+          countdownDays = 5,
+        } = satelliteConfig;
+
         seeMoreBtn.textContent = "[ CONNECTING TO SATELLITE... ]";
         seeMoreBtn.disabled = true;
         seeMoreBtn.style.color = "#ffaa00";
@@ -556,14 +569,14 @@ async function initUI() {
           window._modalPositions = null;
           window._modalPosIndex = 0;
 
-          // Generate 48 spam dialogs to exactly fill the 8x6 grid
+          // Generate spam dialogs based on config
           const hijackMessages = [];
-          for (let i = 0; i < 48; i++) {
+          for (let i = 0; i < spamDialogCount; i++) {
             const base = baseMessages[i % baseMessages.length];
             hijackMessages.push({
               title: `<span style="color: #ff0000;">${base.title}</span>`,
               html: `<div style="text-align:center;padding:10px;"><p style="color:#ff0000;font-weight:bold;font-size:1.1em;">${base.msg}</p></div>`,
-              delay: i * 60, // 60ms apart for rapid fire
+              delay: i * spamDialogInterval,
             });
           }
 
@@ -585,12 +598,8 @@ async function initUI() {
             }, msg.delay);
           });
 
-          // Show final centered dialog after all spam dialogs (48 * 60ms = 2880ms + 1500ms buffer)
+          // Show final centered dialog after all spam dialogs
           setTimeout(() => {
-            // Calculate 5 days from now
-            const impactDate = new Date();
-            impactDate.setDate(impactDate.getDate() + 5);
-
             new Modal({
               type: "custom",
               title: `<span style="color: #ff0000; font-size: 1.5em;">CATASTROPHIC ALERT</span>`,
@@ -609,7 +618,7 @@ async function initUI() {
                     <div style="background: #000; padding: 20px; border: 3px solid #ff0000; margin: 15px 0;">
                       <p style="color: #ff6600; font-size: 1.3em; margin-bottom: 10px;">ESTIMATED TIME TO IMPACT:</p>
                       <p id="impact-countdown" style="color: #ff0000; font-size: 3em; font-weight: bold; text-shadow: 0 0 30px #ff0000;">
-                        5 DAYS : 00 HRS : 00 MIN : 00 SEC
+                        ${countdownDays} DAYS : 00 HRS : 00 MIN : 00 SEC
                       </p>
                     </div>
                     <p style="color: #ff3333; font-size: 1.2em; margin-top: 20px;">
@@ -632,7 +641,7 @@ async function initUI() {
             // Start countdown timer
             const countdownEl = document.getElementById("impact-countdown");
             if (countdownEl) {
-              let totalSeconds = 5 * 24 * 60 * 60; // 5 days in seconds
+              let totalSeconds = countdownDays * 24 * 60 * 60;
               const countdownInterval = setInterval(() => {
                 totalSeconds--;
                 if (totalSeconds <= 0) {
@@ -649,7 +658,7 @@ async function initUI() {
                 countdownEl.innerHTML = `${days} DAYS : ${String(hours).padStart(2, "0")} HRS : ${String(minutes).padStart(2, "0")} MIN : ${String(seconds).padStart(2, "0")} SEC`;
               }, 1000);
             }
-          }, 4500); // After all spam dialogs
+          }, finalDialogDelay);
 
           // Reset button after all dialogs shown
           setTimeout(() => {
@@ -657,8 +666,8 @@ async function initUI() {
             seeMoreBtn.textContent = "[ SEE MORE DETAILS ]";
             seeMoreBtn.disabled = false;
             seeMoreBtn.style.color = "";
-          }, 5000);
-        }, 10000); // 10 seconds delay
+          }, buttonResetDelay);
+        }, connectingDelay);
       });
     }
   }
@@ -673,9 +682,9 @@ async function initUI() {
 
   getDisplayName().then((user) => {
     if (user) {
-      greeter.innerHTML += `Welcome back, <em>${user}</em>`;
+      greeter.innerHTML += `Welcome back, <em>Aerosat Operations Center</em>`;
     } else {
-      greeter.innerHTML += "Welcome back";
+      greeter.innerHTML += `Welcome back, <em>Aerosat Operations Center</em>`;
     }
   });
 
